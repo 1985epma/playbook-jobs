@@ -1,0 +1,21 @@
+- name: Create VM in Windows
+  hosts: windows
+  tasks:
+    - name: Create VM
+      win_shell: |
+        $vmName = "my-vm"
+        $vmSwitch = "External Network"
+        $vmPath = "C:\VMs\"
+        $vhdPath = "C:\VMs\my-vm.vhdx"
+        $vmGen = "2"
+        $vmMemory = "4GB"
+        $vmCPUCount = "2"
+        $vmNew = New-VM -Name $vmName -SwitchName $vmSwitch -Path $vmPath -Generation $vmGen -MemoryStartupBytes (Get-WmiObject -Class Win32_ComputerSystem).TotalPhysicalMemory -VHDPath $vhdPath -NewVHDSizeBytes 50GB -SwitchType External -bootorder (Get-WmiObject -Class Msvm_BIOSSettingData -Namespace "root/virtualization/v2").BootSourceSettings
+        $vmNew | Set-VMProcessor -Count $vmCPUCount -ExposeVirtualizationExtensions $true
+        $vmNew | Set-VMMemory -StartupBytes $vmMemory
+        Start-VM $vmName
+      register: vm_output
+    - name: Display output
+      debug:
+        var: vm_output
+
