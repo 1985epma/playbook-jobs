@@ -1,0 +1,46 @@
+- hosts: all
+  become: yes
+  vars:
+    db_name: mydb
+    db_user: admin
+    db_password: admin
+    pgadmin_email: "admin@example.com"
+    pgadmin_password: "pgadmin_password"
+  tasks:
+  - name: Install Docker
+    apt:
+      update_cache: yes
+      name: docker.io
+      state: present
+  - name: Install Docker Python module
+    pip:
+      name: docker
+      state: present
+  - name: Create directory for PostgreSQL data
+    file:
+      path: /opt/postgresql
+      state: directory
+  - name: Start PostgreSQL container
+    docker_container:
+      name: postgresql
+      image: postgres
+      ports:
+        - "5432:5432"
+      volumes:
+        - /opt/postgresql:/var/lib/postgresql/data
+      environment:
+        POSTGRES_DB: "{{ db_name }}"
+        POSTGRES_USER: "{{ db_user }}"
+        POSTGRES_PASSWORD: "{{ db_password }}"
+      restart_policy: always
+  - name: Start pgAdmin container
+    docker_container:
+      name: pgadmin
+      image: dpage/pgadmin4
+      ports:
+        - "8080:80"
+      environment:
+        PGADMIN_DEFAULT_EMAIL: "{{ pgadmin_email }}"
+        PGADMIN_DEFAULT_PASSWORD: "{{ pgadmin_password }}"
+      restart_policy: always
+

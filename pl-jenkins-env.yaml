@@ -1,0 +1,33 @@
+- name: Create Jenkins container
+  hosts: docker_hosts
+  become: yes
+  vars:
+    jenkins_admin_password: "changeme"
+  tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+    - name: Add current user to Docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+    - name: Create Jenkins volume
+      docker_volume:
+        name: jenkins_home
+    - name: Start Jenkins container
+      docker_container:
+        name: jenkins
+        image: jenkins/jenkins:lts
+        state: started
+        ports:
+          - "8080:8080"
+        volumes:
+          - jenkins_home:/var/jenkins_home
+        restart_policy: unless-stopped
+        env:
+          JAVA_OPTS: "-Djenkins.install.runSetupWizard=false"
+          JENKINS_ADMIN_ID: "admin"
+          JENKINS_ADMIN_PASSWORD: "{{ jenkins_admin_password }}"
+

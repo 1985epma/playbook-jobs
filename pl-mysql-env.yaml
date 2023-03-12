@@ -1,0 +1,31 @@
+- hosts: dbserver
+  become: true
+  vars:
+    mysql_root_password: "secretpassword"
+  tasks:
+    - name: Install MySQL server
+      apt:
+        name: mysql-server
+        state: present
+    - name: Secure MySQL installation
+      mysql_secure_installation:
+        login_unix_socket: true
+        login_user: root
+        login_password: ""
+        validate_password: false
+        change_root_password: true
+        root_password: "{{ mysql_root_password }}"
+        remove_anonymous_users: true
+        disallow_root_login_remotely: true
+        remove_test_database: true
+    - name: Create MySQL database
+      mysql_db:
+        name: mydb
+        state: present
+    - name: Create MySQL user
+      mysql_user:
+        name: myuser
+        password: mypassword
+        priv: mydb.*:ALL
+        state: present
+

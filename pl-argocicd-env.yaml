@@ -1,0 +1,27 @@
+- name: Create Argo CD container
+  hosts: docker_hosts
+  become: yes
+  vars:
+    argo_cd_admin_password: "changeme"
+  tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+    - name: Add current user to Docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+    - name: Start Argo CD container
+      docker_container:
+        name: argocd
+        image: argoproj/argocd:latest
+        state: started
+        ports:
+          - "8080:8080"
+        restart_policy: unless-stopped
+        env:
+          ARGOCD_ADMIN_PASSWORD: "{{ argo_cd_admin_password }}"
+          ARGOCD_OPTS: "--insecure"
+
