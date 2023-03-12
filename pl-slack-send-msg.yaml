@@ -1,0 +1,21 @@
+- name: Run playbook
+  hosts: all
+  tasks:
+    - name: Task 1
+      # Task 1 implementation goes here
+    - name: Task 2
+      # Task 2 implementation goes here
+
+- name: Send Slack notification
+  hosts: localhost
+  tasks:
+    - name: Notify Slack
+      slack:
+        token: "Slack webhook token"
+        channel: "#canal-no-slack"
+        username: "Nome do bot"
+        text: "Playbook executado com sucesso"
+      when: "playbook_run_result|default({}).failed == false"
+      vars:
+        playbook_run_result: "{{ play recap}}"
+
